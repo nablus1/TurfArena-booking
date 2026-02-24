@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       const payment = await tx.payment.create({
         data: {
           bookingId: booking.id,
-          userId: userId ?? "GUEST",
+          userId: userId ?? null,
           amount: totalAmount,
           currency: "KES",
           paymentMethod: "CASH",

@@ -135,7 +135,7 @@ enum BookingStatus {
 model Payment {
   id                  String        @id @default(cuid())
   bookingId           String        @unique
-  userId              String
+  userId              String?
   amount              Float
   currency            String        @default("KES")
   paymentMethod       PaymentMethod
@@ -149,7 +149,7 @@ model Payment {
   updatedAt           DateTime      @updatedAt
 
   booking Booking @relation(fields: [bookingId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
+  user    User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])
