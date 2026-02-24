@@ -85,7 +85,7 @@ model TimeSlot {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  bookings Booking[]
+  bookings Booking[]  
 
   @@unique([date, startTime, endTime])
   @@index([date])
@@ -96,21 +96,21 @@ model TimeSlot {
 model Booking {
   id                String        @id @default(cuid())
   bookingReference  String        @unique @default(cuid())
-  userId            String
+  userId            String?       // allow guest bookings
   timeSlotId        String
   status            BookingStatus @default(PENDING)
   totalAmount       Float
   playerCount       Int           @default(1)
   notes             String?       @db.Text
-  ticketUrl         String?       // S3/Cloudinary URL to PDF
-  qrCode            String?       // Unique QR code for validation
+  ticketUrl         String?
+  qrCode            String?
   isValidated       Boolean       @default(false)
   validatedAt       DateTime?
-  validatedBy       String?       // Admin user ID
+  validatedBy       String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id])
+  user     User?     @relation(fields: [userId], references: [id])
   timeSlot TimeSlot  @relation(fields: [timeSlotId], references: [id])
   payment  Payment?
   validation Validation?
@@ -121,6 +121,7 @@ model Booking {
   @@index([bookingReference])
   @@index([qrCode])
 }
+
 
 enum BookingStatus {
   PENDING

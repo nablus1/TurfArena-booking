@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/db';
-import { pdfService } from '@/services/pdf.service';
+import { authOptions } from '@/src/lib/auth';
+import prisma from '@/src/lib/db';
+import { pdfService } from '@/src/services/pdf.service';
 
 export async function POST(req: NextRequest) {
   try {

@@ -1,8 +1,7 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from '@/src/components/layout/Header';
-import { Footer } from '@/src/components/layout/Footer';
 import { Toaster } from '@/src/components/ui/toaster';
 import { Providers } from './providers';
 
@@ -16,20 +15,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          {children}
           <Toaster />
         </Providers>
       </body>

@@ -9,7 +9,7 @@ import {
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
 
 import { cn } from "@/src/lib/utils"
-import { Button, buttonVariants } from "@/src/components/ui/button"
+import { Button } from "@/src/components/ui/button"
 
 function Calendar({
   className,
@@ -30,8 +30,8 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn(
         "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
-        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
-        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
+        String.raw`rtl:**:[.rdp-button_next>svg]:rotate-180`,
+        String.raw`rtl:**:[.rdp-button_previous>svg]:rotate-180`,
         className
       )}
       captionLayout={captionLayout}
@@ -51,16 +51,17 @@ function Calendar({
           "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
           defaultClassNames.nav
         ),
+
+        // 🔥 FIXED: removed buttonVariants
         button_previous: cn(
-          buttonVariants({ variant: buttonVariant }),
           "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
           defaultClassNames.button_previous
         ),
         button_next: cn(
-          buttonVariants({ variant: buttonVariant }),
           "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
           defaultClassNames.button_next
         ),
+
         month_caption: cn(
           "flex items-center justify-center h-(--cell-size) w-full px-(--cell-size)",
           defaultClassNames.month_caption

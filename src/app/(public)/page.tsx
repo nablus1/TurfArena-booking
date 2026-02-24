@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, CreditCard, Shield, Zap, ChevronRight, Star, Users, CheckCircle, ArrowRight, Search, X, Loader2, Phone } from 'lucide-react';
 
 interface TimeSlot {
@@ -18,43 +18,33 @@ interface Toast {
 
 export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState<string>('2025-11-20');
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([
-    { id: '1', time: '06:00 - 07:00', status: 'available', price: 2000 },
-    { id: '2', time: '07:00 - 08:00', status: 'available', price: 2000 },
-    { id: '3', time: '08:00 - 09:00', status: 'booked', price: 2500 },
-    { id: '4', time: '09:00 - 10:00', status: 'available', price: 2500 },
-    { id: '5', time: '10:00 - 11:00', status: 'available', price: 2500 },
-    { id: '6', time: '14:00 - 15:00', status: 'available', price: 2500 },
-    { id: '7', time: '15:00 - 16:00', status: 'booked', price: 2500 },
-    { id: '8', time: '16:00 - 17:00', status: 'available', price: 2500 },
-    { id: '9', time: '18:00 - 19:00', status: 'available', price: 3000 },
-    { id: '10', time: '19:00 - 20:00', status: 'available', price: 3000 },
-    { id: '11', time: '20:00 - 21:00', status: 'booked', price: 3000 },
-  ]);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState<boolean>(true);
 
   // Payment Modal States
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [playerCount, setPlayerCount] = useState<number>(10);
+  const [userName, setUserName] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [paymentStep, setPaymentStep] = useState<number>(1);
   const [toast, setToast] = useState<Toast | null>(null);
 
   const stats = [
-    { label: 'Happy Players', value: '200+', icon: Users },
-    { label: 'Games Played', value: '100+', icon: Zap },
+    { label: 'Happy Players', value: '100+', icon: Users },
+    { label: 'Games Played', value: '50+', icon: Zap },
     { label: 'Average Rating', value: '4.6', icon: Star },
   ];
 
   const features = [
-    { icon: Calendar, title: 'Easy Booking', description: 'Book your slot in just a few clicks. View real-time availability and choose your preferred time.' },
-    { icon: CreditCard, title: 'M-Pesa Payment', description: 'Pay securely with M-Pesa STK Push. Instant confirmation and digital tickets.' },
+    { icon: Calendar, title: 'Personal Training', description: 'Book your personal training sessions @Ksh 2000 per month as from 7 AM - 10 AM per day Monday - Friday.' },
+    { icon: CreditCard, title: 'Kids Registration', description: 'Ksh 2000 per month per kid. Kids playtime as from 10 AM - 12 PM.' },
     { icon: Shield, title: 'Verified Tickets', description: 'QR code tickets for secure entry. No more paper tickets or confusion at the gate.' },
     { icon: MapPin, title: 'Prime Location', description: 'Located in Juja, Opposite ST Peters school, easily accessible with ample parking space.' },
     { icon: Zap, title: 'Quality Pitch', description: 'Well-maintained artificial turf with proper lighting for evening games, Sitting area for spectators.' },
-    { icon: Clock, title: 'Flexible Hours', description: 'Open from 6 AM to 12 AM daily. Book morning, afternoon, or evening slots.' },
+    { icon: Clock, title: 'Flexible Hours', description: 'Open from 7 AM to 12 AM daily, Get extra 30 minutes Extra Between 8 AM - 5 PMS.' },
   ];
 
   const amenities = [
@@ -65,6 +55,41 @@ export default function HomePage() {
     'First aid kit',
     'Clean facilities'
   ];
+
+  // Fetch real slots from backend
+const fetchAvailableSlots = async (date: string) => {
+  setLoadingSlots(true);
+  try {
+    const response = await fetch(`/api/slots/available?date=${date}`);
+    if (!response.ok) throw new Error('Failed to fetch slots');
+
+    const data = await response.json();
+
+    const formattedSlots = data.slots.map((slot: any) => ({
+      id: slot.id,
+      time: `${slot.startTime} - ${slot.endTime}`,
+      status: slot.bookingsCount > 0 ? 'booked' : 'available',
+      price: slot.price
+    }));
+
+    setAvailableSlots(formattedSlots);
+
+  } catch (error) {
+    showToast({
+      title: 'Error',
+      description: 'Failed to load available slots',
+      variant: 'destructive',
+    });
+  } finally {
+    setLoadingSlots(false);
+  }
+};
+
+
+  //  Fetch slots on mount and when date changes
+  useEffect(() => {
+    fetchAvailableSlots(selectedDate);
+  }, [selectedDate]);
 
   const showToast = (toastData: Toast) => {
     setToast(toastData);
@@ -91,127 +116,78 @@ export default function HomePage() {
     }
   };
 
-  const handleCreateBookingAndPay = async () => {
-    const phoneRegex = /^(254|0)[17]\d{8}$/;
-    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
-      showToast({
-        title: 'Invalid Phone Number',
-        description: 'Please enter a valid Kenyan phone number',
-        variant: 'destructive',
-      });
-      return;
+const handleCreateBookingAndPay = async () => {
+  if (!selectedSlot) {
+    showToast({
+      title: 'No Slot Selected',
+      description: 'Please select a slot before proceeding.',
+      variant: 'destructive',
+    });
+    return;
+  }
+
+  const phoneRegex = /^(254|0)[17]\d{8}$/;
+  if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
+    showToast({
+      title: 'Invalid Phone Number',
+      description: 'Please enter a valid Kenyan phone number',
+      variant: 'destructive',
+    });
+    return;
+  }
+
+  setLoading(true);
+  setPaymentStep(2);
+
+  try {
+    // Step 1: Create booking
+    const bookingResponse = await fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        timeSlotId: selectedSlot.id,
+        totalAmount: selectedSlot.price, 
+        playerCount,
+        notes,
+      }),
+    });
+
+    if (!bookingResponse.ok) {
+      const error = await bookingResponse.json();
+      throw new Error(error.error || 'Failed to create booking');
     }
 
-    setLoading(true);
-    setPaymentStep(2);
+    const booking = await bookingResponse.json();
+    // After creating booking
+    const paymentResponse = await fetch('/api/payments/stk-push', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+    phoneNumber,
+    amount: selectedSlot.price,
+    accountReference: booking.bookingReference,
+    transactionDesc: 'Turf Booking Payment',
+  }),
+});
 
-    try {
-      const bookingResponse = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          timeSlotId: selectedSlot?.id,
-          playerCount,
-          notes,
-        }),
-      });
+const paymentData = await paymentResponse.json();
 
-      if (!bookingResponse.ok) {
-        const error = await bookingResponse.json();
-        throw new Error(error.error || 'Failed to create booking');
-      }
+if (paymentData.error) throw new Error(paymentData.error);
 
-      const booking = await bookingResponse.json();
+// Now wait for callback ( for payment confirmation)
 
-      const paymentResponse = await fetch('/api/payments/mpesa/stk-push', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bookingId: booking.id,
-          phoneNumber: phoneNumber,
-        }),
-      });
+    // ... continue with STK push logic
+  } catch (error: any) {
+    showToast({
+      title: 'Error',
+      description: error.message,
+      variant: 'destructive',
+    });
+    setLoading(false);
+    setPaymentStep(1);
+  }
+};
 
-      if (!paymentResponse.ok) {
-        const error = await paymentResponse.json();
-        throw new Error(error.error || 'Payment initiation failed');
-      }
-
-      const paymentData = await paymentResponse.json();
-
-      showToast({
-        title: 'STK Push Sent! 📱',
-        description: paymentData.message || 'Check your phone to complete payment',
-      });
-
-      pollPaymentStatus(paymentData.payment.checkoutRequestId);
-
-    } catch (error: any) {
-      showToast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-      setLoading(false);
-      setPaymentStep(1);
-    }
-  };
-
-  const pollPaymentStatus = async (checkoutRequestId: string) => {
-    let attempts = 0;
-    const maxAttempts = 60;
-
-    const interval = setInterval(async () => {
-      attempts++;
-
-      try {
-        const response = await fetch(`/api/payments/verify/${checkoutRequestId}`);
-        const data = await response.json();
-
-        if (data.status === 'COMPLETED') {
-          clearInterval(interval);
-          setLoading(false);
-          
-          showToast({
-            title: 'Payment Successful! 🎉',
-            description: 'Your booking is confirmed!',
-          });
-
-          closeModal();
-          
-          setTimeout(() => {
-            window.location.href = `/bookings/${data.booking.id}`;
-          }, 2000);
-        } else if (data.status === 'FAILED') {
-          clearInterval(interval);
-          setLoading(false);
-          
-          showToast({
-            title: 'Payment Failed',
-            description: 'Please try again',
-            variant: 'destructive',
-          });
-          
-          setPaymentStep(1);
-        }
-      } catch (error) {
-        console.error('Poll error:', error);
-      }
-
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        setLoading(false);
-        
-        showToast({
-          title: 'Timeout',
-          description: 'Payment verification timed out',
-          variant: 'destructive',
-        });
-        
-        setPaymentStep(1);
-      }
-    }, 1000);
-  };
 
   return (
     <div className="bg-white">
@@ -299,7 +275,22 @@ export default function HomePage() {
                       />
                     </div>
                   </div>
-
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Your Name *
+                    </label>
+                    <div className="relative">
+                      <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Full Name"
+                        className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                   
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       M-Pesa Phone Number *
@@ -374,10 +365,10 @@ export default function HomePage() {
                   </div>
 
                   <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-700 space-y-2">
-                    <p className="flex items-center justify-center gap-2">
-                      <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
-                      Waiting for payment confirmation...
-                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
+                      <span>Waiting for payment confirmation...</span>
+                    </div>
                     <p className="text-xs text-slate-500">
                       Enter your M-Pesa PIN to complete
                     </p>
@@ -402,13 +393,13 @@ export default function HomePage() {
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1920&q=80')"
+            backgroundImage: "url('/images/voltaout.jpg')",
           }}
         />
         
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/90 via-emerald-800/85 to-emerald-950/90" />
+        <div className="absolute inset-0 bg-emerald-900/40" />
         
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-10" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,...')] opacity-10" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="text-center max-w-4xl mx-auto">
@@ -418,7 +409,7 @@ export default function HomePage() {
             </div>
             
             <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Welcome to <span className="text-emerald-300">Juja Turf Arena</span>
+              Welcome to <span className="text-emerald-300">Volta Arena</span>
             </h1>
             <p className="text-xl lg:text-2xl mb-10 text-emerald-50 leading-relaxed max-w-3xl mx-auto">
               Book your football turf online in seconds. Premium quality pitch, flexible timing, and easy payment with M-Pesa.
@@ -460,7 +451,7 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-slate-900 mb-4">Check Available Slots</h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Browse real-time availability and secure your preferred time slot instantly
+              Select date to browse real-time availability and secure your preferred time slot instantly
             </p>
           </div>
 
@@ -479,8 +470,12 @@ export default function HomePage() {
                     />
                   </div>
                 </div>
-                <button className="w-full md:w-auto mt-6 md:mt-0 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                  <Search className="h-5 w-5" />
+                <button 
+                  onClick={() => fetchAvailableSlots(selectedDate)}
+                  disabled={loadingSlots}
+                  className="w-full md:w-auto mt-6 md:mt-0 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  {loadingSlots ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
                   Search Slots
                 </button>
               </div>
@@ -506,44 +501,55 @@ export default function HomePage() {
               </div>
 
               <div className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {availableSlots.map((slot) => (
-                    <div
-                      key={slot.id}
-                      onClick={() => handleBookSlot(slot)}
-                      className={`p-5 rounded-lg border-2 transition-all ${
-                        slot.status === 'available'
-                          ? 'border-emerald-200 bg-emerald-50 hover:border-emerald-400 hover:shadow-md cursor-pointer'
-                          : 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Clock className={`h-5 w-5 ${slot.status === 'available' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                          <span className={`font-semibold ${slot.status === 'available' ? 'text-slate-900' : 'text-slate-500'}`}>
-                            {slot.time}
-                          </span>
+                {loadingSlots ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="h-12 w-12 animate-spin text-emerald-600 mx-auto mb-4" />
+                    <p className="text-slate-600">Loading available slots...</p>
+                  </div>
+                ) : availableSlots.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-slate-600">No slots available for this date.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {availableSlots.map((slot) => (
+                      <div
+                        key={slot.id}
+                        onClick={() => handleBookSlot(slot)}
+                        className={`p-5 rounded-lg border-2 transition-all ${
+                          slot.status === 'available'
+                            ? 'border-emerald-200 bg-emerald-50 hover:border-emerald-400 hover:shadow-md cursor-pointer'
+                            : 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Clock className={`h-5 w-5 ${slot.status === 'available' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                            <span className={`font-semibold ${slot.status === 'available' ? 'text-slate-900' : 'text-slate-500'}`}>
+                              {slot.time}
+                            </span>
+                          </div>
+                          {slot.status === 'booked' && (
+                            <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
+                              Booked
+                            </span>
+                          )}
                         </div>
-                        {slot.status === 'booked' && (
-                          <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
-                            Booked
+                        
+                        <div className="flex items-center justify-between">
+                          <span className={`text-2xl font-bold ${slot.status === 'available' ? 'text-emerald-600' : 'text-slate-400'}`}>
+                            KES {slot.price.toLocaleString()}
                           </span>
-                        )}
+                          {slot.status === 'available' && (
+                            <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-all">
+                              Book
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className={`text-2xl font-bold ${slot.status === 'available' ? 'text-emerald-600' : 'text-slate-400'}`}>
-                          KES {slot.price.toLocaleString()}
-                        </span>
-                        {slot.status === 'available' && (
-                          <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-all">
-                            Book
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -554,7 +560,7 @@ export default function HomePage() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">Why Choose Us?</h2>
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">What We Offer!</h2>
             <p className="text-lg text-slate-600">Everything you need for the perfect game</p>
           </div>
           
@@ -588,20 +594,17 @@ export default function HomePage() {
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-slate-600 mb-2">Morning</h3>
                 <div className="text-4xl font-bold text-emerald-600 mb-1">KES 2,000</div>
-                <p className="text-sm text-slate-500 mb-6">per hour</p>
-                <p className="text-sm text-slate-600">6:00 AM - 9:00 AM</p>
+                <p className="text-sm text-slate-500 mb-6">per hour</p>               
+                  <p className="text-sm text-slate-600">6:00 AM - 12:00 PM</p>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl shadow-xl border-2 border-emerald-400 p-8 transform scale-105">
+            <div className="bg-white rounded-xl shadow-md border border-slate-200 p-8">
               <div className="text-center">
-                <div className="inline-block bg-emerald-400 text-emerald-900 text-xs font-bold px-3 py-1 rounded-full mb-3">
-                  MOST POPULAR
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Standard</h3>
-                <div className="text-4xl font-bold text-white mb-1">KES 2,500</div>
-                <p className="text-sm text-emerald-100 mb-6">per hour</p>
-                <p className="text-sm text-emerald-50">9:00 AM - 6:00 PM</p>
+                <h3 className="text-lg font-semibold text-slate-600 mb-2">Afternoon</h3>
+                <div className="text-4xl font-bold text-emerald-600 mb-1">KES 2,500</div>
+                <p className="text-sm text-slate-500 mb-6">per hour</p>
+                <p className="text-sm text-slate-600">12:00 PM - 6:00 PM</p>
               </div>
             </div>
 
@@ -614,35 +617,24 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-
-          <div className="max-w-2xl mx-auto mt-10 bg-white rounded-xl shadow-md border border-slate-200 p-8">
-            <h4 className="font-semibold text-slate-900 mb-4 text-center">All bookings include:</h4>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {amenities.map((item, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0" />
-                  <span className="text-slate-700">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-4">Ready to Play?</h2>
-          <p className="text-xl mb-10 text-slate-300 max-w-2xl mx-auto">
-            Book your slot now and get instant confirmation. Don't miss out on your preferred time!
-          </p>
-          <button 
-            onClick={() => document.getElementById('slots-section')?.scrollIntoView({ behavior: 'smooth' })}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-10 py-5 rounded-lg shadow-xl hover:shadow-2xl transition-all text-lg flex items-center gap-3 mx-auto group"
-          >
-            <span>Make a Booking</span>
-            <ChevronRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
-          </button>
+      {/* Amenities Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">Amenities</h2>
+            <p className="text-lg text-slate-600">Everything you need for a great experience</p>
+          </div>
+          <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {amenities.map((item, index) => (
+              <div key={index} className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <CheckCircle className="h-5 w-5 text-emerald-600" />
+                <span className="text-slate-700">{item}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>

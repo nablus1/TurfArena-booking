@@ -155,51 +155,52 @@ export default function ValidateTicket() {
     booking.payment?.status === 'COMPLETED';
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto p-4 space-y-4">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Validate Ticket</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900">Validate Ticket</h1>
+        <p className="text-sm text-gray-500 mt-0.5">
           Scan QR code or enter booking reference
         </p>
       </div>
 
       {/* Scanner Input */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Scan className="h-5 w-5" />
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Scan className="h-4 w-4" />
             Scan Ticket
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-4 pt-2 space-y-3">
           <div>
-            <Label htmlFor="qrCode">QR Code / Booking Reference</Label>
+            <Label htmlFor="qrCode" className="text-xs mb-1.5">QR Code / Booking Reference</Label>
             <Input
               id="qrCode"
               value={qrCode}
               onChange={(e) => setQrCode(e.target.value)}
               placeholder="Enter code or scan QR"
               onKeyDown={(e) => e.key === 'Enter' && handleScan()}
+              className="px-3 py-2 text-sm"
               autoFocus
             />
           </div>
 
           <div className="flex gap-2">
-            <Button onClick={handleScan} disabled={loading} className="flex-1">
+            <Button onClick={handleScan} disabled={loading} className="flex-1 text-sm px-3 py-1.5" size="sm">
               {loading ? 'Scanning...' : 'Verify Ticket'}
             </Button>
             {booking && (
-              <Button variant="outline" onClick={handleReset}>
+              <Button variant="outline" onClick={handleReset} size="sm" className="text-sm px-3 py-1.5">
                 Reset
               </Button>
             )}
           </div>
 
           {/* Web Camera Scanner Option */}
-          <div className="text-center pt-4 border-t">
-            <p className="text-sm text-gray-500 mb-3">Or use camera to scan</p>
-            <Button variant="secondary" className="gap-2">
-              <Scan className="h-4 w-4" />
+          <div className="text-center pt-3 border-t">
+            <p className="text-xs text-gray-500 mb-2">Or use camera to scan</p>
+            <Button variant="secondary" className="gap-1.5 text-sm px-3 py-1.5" size="sm">
+              <Scan className="h-3.5 w-3.5" />
               Open Camera Scanner
             </Button>
           </div>
@@ -217,31 +218,31 @@ export default function ValidateTicket() {
               : 'border-red-500 bg-red-50'
           }`}
         >
-          <CardHeader>
+          <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle>Booking Details</CardTitle>
+              <CardTitle className="text-sm">Booking Details</CardTitle>
               {booking.isValidated ? (
-                <div className="flex items-center gap-2 text-green-600 font-semibold">
-                  <CheckCircle className="h-5 w-5" />
+                <div className="flex items-center gap-1.5 text-green-600 font-semibold text-xs">
+                  <CheckCircle className="h-4 w-4" />
                   Validated
                 </div>
               ) : canValidate ? (
-                <div className="flex items-center gap-2 text-blue-600 font-semibold">
-                  <Clock className="h-5 w-5" />
+                <div className="flex items-center gap-1.5 text-blue-600 font-semibold text-xs">
+                  <Clock className="h-4 w-4" />
                   Ready to Validate
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-red-600 font-semibold">
-                  <XCircle className="h-5 w-5" />
+                <div className="flex items-center gap-1.5 text-red-600 font-semibold text-xs">
+                  <XCircle className="h-4 w-4" />
                   Cannot Validate
                 </div>
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-4 pt-2 space-y-3">
             {/* Status Badge */}
             <div
-              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
+              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(
                 booking.status
               )}`}
             >
@@ -249,23 +250,23 @@ export default function ValidateTicket() {
             </div>
 
             {/* Customer Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 <div>
-                  <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <User className="h-4 w-4" />
+                  <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-0.5">
+                    <User className="h-3 w-3" />
                     Customer
                   </p>
-                  <p className="font-semibold">{booking.user.name}</p>
-                  <p className="text-sm text-gray-600">{booking.user.phone}</p>
+                  <p className="font-semibold text-sm">{booking.user.name}</p>
+                  <p className="text-xs text-gray-600">{booking.user.phone}</p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
+                  <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-0.5">
+                    <Calendar className="h-3 w-3" />
                     Date
                   </p>
-                  <p className="font-semibold">
+                  <p className="font-semibold text-sm">
                     {new Date(booking.timeSlot.date).toLocaleDateString(
                       'en-KE',
                       {
@@ -279,23 +280,23 @@ export default function ValidateTicket() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div>
-                  <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
+                  <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-0.5">
+                    <Clock className="h-3 w-3" />
                     Time Slot
                   </p>
-                  <p className="font-semibold">
+                  <p className="font-semibold text-sm">
                     {booking.timeSlot.startTime} - {booking.timeSlot.endTime}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
+                  <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-0.5">
+                    <DollarSign className="h-3 w-3" />
                     Amount Paid
                   </p>
-                  <p className="font-semibold text-lg">
+                  <p className="font-semibold text-base">
                     KES {booking.totalAmount.toLocaleString()}
                   </p>
                 </div>
@@ -304,27 +305,27 @@ export default function ValidateTicket() {
 
             {/* Payment Info */}
             {booking.payment?.mpesaReceiptNumber && (
-              <div className="p-3 bg-white rounded-lg border">
-                <p className="text-sm text-gray-500">M-Pesa Receipt</p>
-                <p className="font-mono font-semibold">
+              <div className="p-2.5 bg-white rounded-lg border">
+                <p className="text-xs text-gray-500 mb-0.5">M-Pesa Receipt</p>
+                <p className="font-mono font-semibold text-sm">
                   {booking.payment.mpesaReceiptNumber}
                 </p>
               </div>
             )}
 
             {/* Booking Reference */}
-            <div className="p-3 bg-white rounded-lg border">
-              <p className="text-sm text-gray-500">Booking Reference</p>
-              <p className="font-mono font-semibold text-lg">
+            <div className="p-2.5 bg-white rounded-lg border">
+              <p className="text-xs text-gray-500 mb-0.5">Booking Reference</p>
+              <p className="font-mono font-semibold text-base">
                 {booking.bookingReference}
               </p>
             </div>
 
             {/* Validation Info */}
             {booking.isValidated && booking.validatedAt && (
-              <div className="p-3 bg-green-100 rounded-lg border border-green-200">
-                <p className="text-sm text-green-700">Validated At</p>
-                <p className="font-semibold text-green-900">
+              <div className="p-2.5 bg-green-100 rounded-lg border border-green-200">
+                <p className="text-xs text-green-700 mb-0.5">Validated At</p>
+                <p className="font-semibold text-sm text-green-900">
                   {new Date(booking.validatedAt).toLocaleString('en-KE')}
                 </p>
               </div>
@@ -335,19 +336,19 @@ export default function ValidateTicket() {
               <Button
                 onClick={handleValidate}
                 disabled={validating}
-                className="w-full"
-                size="lg"
+                className="w-full text-sm px-3 py-2"
+                size="sm"
               >
                 {validating ? 'Validating...' : 'Validate & Allow Entry'}
               </Button>
             )}
 
             {!canValidate && !booking.isValidated && (
-              <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                <p className="text-sm text-red-700 font-medium">
+              <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                <p className="text-xs text-red-700 font-medium mb-1">
                   This ticket cannot be validated:
                 </p>
-                <ul className="text-sm text-red-600 mt-2 space-y-1 list-disc list-inside">
+                <ul className="text-xs text-red-600 space-y-0.5 list-disc list-inside">
                   {booking.status !== 'CONFIRMED' && (
                     <li>Booking status is {booking.status}</li>
                   )}
@@ -362,73 +363,4 @@ export default function ValidateTicket() {
       )}
     </div>
   );
-}
-
-// API Route: src/app/api/bookings/validate/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/src/lib/auth';
-import prisma from '@/src/lib/db';
-
-export async function GET(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user || 
-        (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(req.url);
-    const code = searchParams.get('code');
-
-    if (!code) {
-      return NextResponse.json(
-        { error: 'QR code or booking reference required' },
-        { status: 400 }
-      );
-    }
-
-    // Search by QR code or booking reference
-    const booking = await prisma.booking.findFirst({
-      where: {
-        OR: [
-          { qrCode: code },
-          { bookingReference: code },
-        ],
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            phone: true,
-            email: true,
-          },
-        },
-        timeSlot: true,
-        payment: {
-          select: {
-            mpesaReceiptNumber: true,
-            status: true,
-          },
-        },
-        validation: true,
-      },
-    });
-
-    if (!booking) {
-      return NextResponse.json(
-        { error: 'Booking not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ booking });
-  } catch (error) {
-    console.error('Validate lookup error:', error);
-    return NextResponse.json(
-      { error: 'Failed to lookup booking' },
-      { status: 500 }
-    );
-  }
 }

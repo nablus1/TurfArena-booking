@@ -39,7 +39,7 @@ export default function LoginPage() {
           title: 'Welcome back!',
           description: 'Login successful',
         });
-        router.push('/dashboard');
+        router.push('/admin');
       }
     } catch (error) {
       toast({
